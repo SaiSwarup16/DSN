@@ -1,0 +1,217 @@
+version: "3.1"
+
+rules:
+
+- rule: Say goodbye anytime the user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Greet User
+  condition:
+  - slot_was_set:
+    - conv_start: true
+  steps:
+  - intent: greet
+  - action: utter_greet
+
+- rule: Activate intro form. (Conv Start)
+  condition:
+  - slot_was_set:
+    - conv_start: false
+  steps:
+  - or:
+    - intent: greet
+    - intent: family_planning
+    - intent: start_family_planning
+    - intent: stop_family_planning
+    - intent: refer_me
+    - intent: get_products
+    - intent: other_issues
+    - intent: gpt_question
+    - intent: nlu_fallback
+  - action: utter_intro
+  - action: info_form
+  - active_loop: info_form
+
+- rule: Deactivate intro form.
+  condition:
+  - active_loop: info_form
+  steps:
+  - action: info_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: action_intro
+
+- rule: Family Planning Deactivate
+  condition:
+  - active_loop: family_planning_form
+  steps:
+  - action: family_planning_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: utter_planning_info
+  
+- rule: Start Family Planning (Previous Usage Affirm Form Deactivate)
+  condition:
+  - active_loop: previous_contraception_form
+  steps:
+  - action: previous_contraception_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: utter_preg_prevention_duration
+
+- rule: Family Planning Activate
+  condition:
+  - slot_was_set:
+    - conv_start: true
+  steps:
+  - intent: family_planning
+  - action: family_planning_form
+  - active_loop: family_planning_form
+
+- rule: Stop/Switch Family Planning (Form Deactivate)
+  condition:
+  - active_loop: discon_req_form
+  steps:
+  - action: discon_req_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: utter_preg_prevention_duration
+
+- rule: Product Details (Form Deactivate)
+  condition:
+  - active_loop: product_details_form
+  steps:
+  - action: product_details_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: utter_product_details
+  - action: utter_refer_clinic
+
+- rule: Refer Clinic
+  condition:
+  - slot_was_set:
+    - conv_start: true
+  steps:
+  - intent: refer_me
+  - action: utter_refer_clinic
+
+- rule: Ask ChatGPT (Form Activate)
+  steps:
+  - intent: ask_gpt
+  - action: chatgpt_form
+  - active_loop: chatgpt_form
+
+- rule: Ask ChatGPT (Form Deactivate)
+  condition:
+  - active_loop: chatgpt_form
+  steps:
+  - action: chatgpt_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: action_ask_gpt
+
+- rule: utter_preg_prevention_duration
+  steps:
+  - intent: preg_prevent_dur
+  - or:
+    - slot_was_set:
+      - preg_prevention_duration: 0-3 months
+    - slot_was_set:
+      - preg_prevention_duration: 1-2 years
+    - slot_was_set:
+      - preg_prevention_duration: 3-4 years
+    - slot_was_set:
+      - preg_prevention_duration: 5-10 years
+    - slot_was_set:
+      - preg_prevention_duration: Permanently
+  - action: utter_preg_duration
+
+- rule: Get Nearest Clinic
+  steps:
+  - intent: get_clinic
+  - action: utter_clinic_details
+
+- rule: Other Issues
+  condition:
+  - slot_was_set:
+    - conv_start: true
+  steps:
+  - intent: other_issues
+  - action: utter_other_issues
+
+- rule: Product Details (Form Activate)
+  condition:
+  - slot_was_set:
+    - conv_start: true
+  steps:
+  - intent: get_products
+  - action: action_reset_product_slot
+  - action: product_details_form
+  - active_loop: product_details_form 
+
+# - rule: Fallback to GPT (Conv Start)
+#   conversation_start: true
+#   steps:
+#   - intent: nlu_fallback
+#   - action: action_ask_gpt
+#   - action: utter_intro
+#   - action: info_form
+#   - active_loop: info_form
+
+- rule: Fallback to GPT
+  condition:
+  - slot_was_set:
+    - conv_start: true
+  steps:
+  - or:
+    - intent: nlu_fallback
+    - intent: gpt_question
+  - action: action_ask_gpt
+
+- rule: Start Family Planning (Check Previous Usage)
+  condition:
+  - slot_was_set:
+    - conv_start: true
+  steps:
+  - intent: start_family_planning
+  - action: utter_check_previous_usage
+  # - intent: affirm
+  # - action: action_reset_previous_contraception_slot
+  # - action: previous_contraception_form
+  # - active_loop: previous_contraception_form
+  
+- rule: Stop/Switch Family Planning (Form Activate)
+  condition:
+  - slot_was_set:
+    - conv_start: true
+  steps:
+  - intent: stop_family_planning
+  - action: action_reset_discon_req_reason_slot
+  - action: discon_req_form
+  - active_loop: discon_req_form
+
+- rule: Check Prev Usage (True)
+  condition:
+  - slot_was_set:
+    - prev_usage: true
+  steps:
+  - intent: check_prev_usage
+  - action: action_reset_previous_contraception_slot
+  - action: previous_contraception_form
+  - active_loop: previous_contraception_form
+
+- rule: Check Prev Usage (False)
+  condition:
+  - slot_was_set:
+    - prev_usage: false
+  steps:
+  - intent: check_prev_usage
+  - action: utter_preg_prevention_duration

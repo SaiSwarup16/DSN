@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="rasa-chat-widget" data-websocket-url="http://localhost:5005/"></div>
+
+ <!-- Add a script element to play the video from the domain file -->
+  <script>
+    const rasaChatWidget = document.querySelector('#rasa-chat-widget');
+
+    rasaChatWidget.addEventListener('rasa-message-received', function(event) {
+      const message = event.detail.message;
+
+      // If the message is of type 'video', play the video.
+      if (message.type === 'video') {
+        const videoSrc = message.payload.src;
+        const videoTitle = message.payload.title;
+
+        // Create a new video element.
+        const videoElement = document.createElement('video');
+        videoElement.src = videoSrc;
+        videoElement.title = videoTitle;
+        videoElement.controls = true;
+
+        // Append the video element to the body.
+        document.body.appendChild(videoElement);
+
+        // Play the video.
+        videoElement.play();
+      }
+    });
+   </script>
+
+   <script src="https://unpkg.com/@rasahq/rasa-chat" type="application/javascript"></script>
+  
+    <script>
+      (function(d,t) {
+        var BASE_URL="http://127.0.0.1:3000";
+        var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+        g.src=BASE_URL+"/packs/js/sdk.js";
+        g.defer = true;
+        g.async = true;
+        s.parentNode.insertBefore(g,s);
+        g.onload=function(){
+          window.chatwootSDK.run({
+            websiteToken: 'b27APDQTsytuVWp37dhnnAH9',
+            baseUrl: BASE_URL
+          })
+        }
+      })(document,"script");
+    </script>
+    
+</body>
+</html>

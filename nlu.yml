@@ -1,0 +1,52 @@
+version: "3.1"
+
+nlu:
+- intent: greet
+  examples: |
+    - hey
+    - hello
+    - hi
+    - hello there
+    - good morning
+    - good evening
+    - moin
+    - hey there
+    - let's go
+    - hey dude
+    - goodmorning
+    - goodevening
+    - good afternoon
+
+- intent: goodbye
+  examples: |
+    - cu
+    - good by
+    - cee you later
+    - good night
+    - bye
+    - goodbye
+    - have a nice day
+    - see you around
+    - bye bye
+    - see you later
+
+- intent: gpt_question
+  examples: |
+    - What is sex?
+    - What is HIV?
+    - How to have sex?
+    - How to cure HIV?
+    - What is AIDS?
+    - Is aids curable
+    - What is menstruation?
+    - What to do during menstruation?
+    - How to know if i am menstruating?
+    - What is STI?
+    - What is
+    - Who is
+    - How to
+    - Abortion
+    - How to perform abortion?
+    - Rape
+    - How to deal with rape?
+    

@@ -1,0 +1,611 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - check_prev_usage
+  - family_planning
+  - start_family_planning
+  - refer_me
+  - ask_gpt
+  - stop_family_planning
+  - get_products
+  - other_issues
+  - preg_prevent_dur
+  - get_clinic
+  - gpt_question
+
+actions:
+  - action_ask_gpt
+  - action_intro
+  - action_reset_product_slot
+  - action_reset_previous_contraception_slot
+  - action_reset_discon_req_reason_slot
+
+entities:
+  - preg_prevention_duration
+  - nearest_clinic
+  - prev_usage
+
+slots:
+  age:
+    type: float
+    min_value: 0.0
+    max_value: 100.0
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: info_form
+        requested_slot: age
+  
+  gender:
+    type: categorical
+    values:
+      - male
+      - female
+      - others
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: info_form
+        requested_slot: gender
+  
+  location:
+    type: categorical
+    values:
+      - aa
+      - bb
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: info_form
+        requested_slot: location
+
+  children:
+    type: categorical
+    values:
+      - None
+      - 1-2
+      - 3-4
+      - 5+
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: family_planning_form
+        requested_slot: children
+
+  previous_contraception_method:
+    type: categorical
+    values:
+      - Postpill
+      - Daily Pill
+      - Condoms
+      - Injectibles
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: previous_contraception_form
+        requested_slot: previous_contraception_method
+
+  previous_contraception_satisfaction:
+    type: categorical
+    values:
+      - Yes
+      - No
+      - Undecided
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: previous_contraception_form
+        requested_slot: previous_contraception_satisfaction
+
+  preg_prevention_duration:
+    type: categorical
+    influence_conversation: True
+    values:
+      - 0-3 months
+      - 1-2 years
+      - 3-4 years
+      - 5-10 years
+      - Permanently
+    mappings:
+    - type: from_entity
+      entity: preg_prevention_duration
+      intent: preg_prevent_dur
+  
+  nearest_clinic:
+    type: categorical
+    influence_conversation: True
+    values:
+      - Aa
+      - Bb
+    mappings:
+    - type: from_entity
+      entity: nearest_clinic
+      intent: get_clinic
+
+  discon_req_reason:
+    type: text
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: discon_req_form
+        requested_slot: discon_req_reason
+  
+  product_category:
+    type: text
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: product_details_form
+        requested_slot: product_category
+
+  product_name:
+    type: text
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: product_details_form
+        requested_slot: product_name
+  
+  gpt_question:
+    type: text
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: chatgpt_form
+        requested_slot: gpt_question
+  
+  conv_start:
+    type: bool
+    initial_value: false
+    mappings:
+    - type: custom
+
+  prev_usage:
+    type: bool
+    mappings:
+    - type: from_entity
+      entity: prev_usage
+      intent: check_prev_usage
+
+forms:
+  info_form:
+    required_slots:
+    - age
+    - gender
+    - location
+  family_planning_form:
+    required_slots:
+    - children
+  previous_contraception_form:
+    required_slots:
+    - previous_contraception_method
+    - previous_contraception_satisfaction
+  discon_req_form:
+    required_slots:
+    - discon_req_reason
+  product_details_form:
+    required_slots:
+    - product_category
+    - product_name
+  chatgpt_form:
+    required_slots:
+    - gpt_question
+
+responses:
+  utter_ask_info_form_age:
+  - text: "Can you tell me how old are you? It helps us give better diagnosis"
+  - text: "How old are you?"
+  - text: "What's your age?"
+
+  utter_ask_info_form_gender:
+  - text: "Can you tell me about your gender?"
+    buttons:
+    - title: "Male"
+      payload: "male"
+    - title: "Female"
+      payload: "female"
+    - title: "Others"
+      payload: "others"
+  - text: "What's your gender?"
+    buttons:
+    - title: "Male"
+      payload: "male"
+    - title: "Female"
+      payload: "female"
+    - title: "Others"
+      payload: "others"
+  - text: "Please specify your gender."
+    buttons:
+    - title: "Male"
+      payload: "male"
+    - title: "Female"
+      payload: "female"
+    - title: "Others"
+      payload: "others"
+
+  utter_ask_info_form_location:
+  - text: What is your location?
+    buttons:
+    - title: "Aa"
+      payload: "aa"
+    - title: "Bb"
+      payload: "bb"
+
+  utter_greet:
+  - text: "Hey! How can I help your today?"
+    buttons:
+    - title: "I want to get Family Planning"
+      payload: /family_planning
+    - title: "I want the nearest Family Planning Clinic"
+      payload: /refer_me
+    - title: "Other Issues"
+      payload: /other_issues
+    - title: "I have a question"
+      payload: /ask_gpt
+  - text: "What would you like to know about?"
+    buttons:
+    - title: "I want to get Family Planning"
+      payload: /family_planning
+    - title: "I want the nearest Family Planning Clinic"
+      payload: /refer_me
+    - title: "Other Issues"
+      payload: /other_issues
+    - title: "I have a question"
+      payload: /ask_gpt
+
+  utter_intro:
+  - text: "Hello my name is Honey, I am a family planning counsellor. I am here to help you with my family planning knowledge and give counselling, feel free to ask me anything. Let's start by providing some basic information.."
+
+  utter_ask_discon_req_reason:
+  - text: "Can you tell me why you don't want to use your previous method?"
+
+  utter_ask_family_planning_form_children:
+  - text: "Alright. How many children do you have now?"
+    buttons:
+    - title: "None"
+      payload: "None"
+    - title: "1-2"
+      payload: "1-2"
+    - title: "3-4"
+      payload: "3-4"
+    - title: "5+"
+      payload: "5+"
+  
+  utter_planning_info:
+  - text: "What do you want to know about family planning?"
+    buttons:
+    - title: "I want to start using a method."
+      payload: /start_family_planning
+    - title: "I want to stop the method I am using now."
+      payload: /stop_family_planning
+    - title: "I want to try another method."
+      payload: /stop_family_planning
+    - title: "I want to know the products you have available."
+      payload: /get_products
+
+  utter_ask_previous_contraception_form_previous_contraception_method:
+  - text: "Ok. Which of these method do you normally use?"
+    buttons:
+    - title: "Postpill (Emergency Pill)"
+      payload: "Postpill"
+    - title: "Daily Pill"
+      payload: "Daily Pill"
+    - title: "Condoms"
+      payload: "Condoms"
+    - title: "Injectibles"
+      payload: "Injectibles"
+
+  utter_ask_previous_contraception_form_previous_contraception_satisfaction:
+  - text: "Were you satisfied with the last method?"
+    buttons:
+    - title: "Yes"
+      payload: "Yes"
+    - title: "No"
+      payload: "No"
+    - title: "Undecided"
+      payload: "Undecided"
+
+  utter_check_previous_usage:
+  - text: "Have you tried any family planning method before?"
+    buttons:
+    - title: "Yes"
+      payload: /check_prev_usage{{"prev_usage":true}}
+    - title: "No"
+      payload: /check_prev_usage{{"prev_usage":false}}
+
+  utter_preg_prevention_duration:
+  - text: "How long do you want to prevent pregnancy?"
+    buttons:
+    - title: "0-3 months"
+      payload: /preg_prevent_dur{{"preg_prevention_duration":"0-3 months"}}
+    - title: "1-2 years"
+      payload: /preg_prevent_dur{{"preg_prevention_duration":"1-2 years"}}
+    - title: "3-4 years"
+      payload: /preg_prevent_dur{{"preg_prevention_duration":"3-4 years"}}
+    - title: "5-10 years"
+      payload: /preg_prevent_dur{{"preg_prevention_duration":"5-10 years"}}
+    - title: "Permanently"
+      payload: /preg_prevent_dur{{"preg_prevention_duration":"Permanently"}}
+  
+  utter_preg_duration:
+  - condition:
+      - type: slot
+        name: preg_prevention_duration
+        value: 0-3 months
+    text: "If you want to prevent pregnancy for within 0-3 months. We have the following methods:\n1.Daily Pills\n2. Injectables\nWe can refer you to the nearest shop/clinic."
+    buttons:
+    - title: "Refer me"
+      payload: /refer_me
+
+  - condition:
+      - type: slot
+        name: preg_prevention_duration
+        value: 1-2 years
+    text: "If you want to prevent pregnancy  within 1-2 years. We have the following methods:\n1. Implants\n2. Injectables\nWe can refer you to the nearest clinic."
+    buttons:
+    - title: "Refer me"
+      payload: /refer_me
+  
+  - condition:
+      - type: slot
+        name: preg_prevention_duration
+        value: 3-4 years
+    text: "If you want to prevent pregnancy  within 3-4 years. We have the following methods:\nWe can refer you to the nearest clinic."
+    buttons:
+    - title: "Refer me"
+      payload: /refer_me
+
+  - condition:
+      - type: slot
+        name: preg_prevention_duration
+        value: 5-10 years
+    text: "If you want to prevent pregnancy within 5-10 years. We have the following metods.\n1.IUD\nWe can refer you to the nearest clinic."
+    buttons:
+    - title: "Refer me"
+      payload: /refer_me
+
+  - condition:
+      - type: slot
+        name: preg_prevention_duration
+        value: Permanently
+    text: "Vasectomy and Tubal Ligation.\nWe can refer you to the nearest clinic."
+    buttons:
+    - title: "Refer me"
+      payload: /refer_me
+
+  utter_refer_clinic:
+  - text: "To talk to an agent Call 7790\".\nI will like to refer you to the nearest clinic.\nPlease choose your nearest location"
+    buttons:
+    - title: Aa
+      payload: /get_clinic{{"nearest_clinic":"Aa"}}
+    - title: Bb
+      payload: /get_clinic{{"nearest_clinic":"Bb"}}
+
+  utter_ask_product_category:
+  - text: "Which of these products do you want to learn about?"
+    buttons:
+    - title: Condoms
+      payload: "Condoms"
+    - title: Gels and Lubricants
+      payload: "Gels and Lubricants"
+    - title: Contraceptive Pills
+      payload: "Contraceptive Pills"
+    - title: Lydia IUD
+      payload: "Lydia IUD"
+    - title: Injectibles
+      payload: "Injectibles"
+    - title: Implant
+      payload: "Implant"
+    - title: Penegra
+      payload: "Penegra"
+    - title: HIV Self-Test Kit
+      payload: "HIV Self-Test Kit"
+
+  utter_ask_product_name:
+  - condition:
+      - type: slot
+        name: product_category
+        value: Condoms
+    text: "We have the following {product_category}:"
+    buttons:
+    - title: Durex
+      payload: "Durex"
+    - title: Trojan
+      payload: "Trojan"
+    - title: Kiss Condom
+      payload: "Kiss Condom"
+    - title: Gold Circle
+      payload: "Gold Circle"
+    - title: FIESTA
+      payload: "FIESTA"
+  
+  - condition:
+      - type: slot
+        name: product_category
+        value: Gels and Lubricants
+    text: "We have the following {product_category}:"
+    buttons:
+    - title: FIESTA Intim Natural Gel
+      payload: "FIESTA Intim Natural Gel"
+    - title: KY Jelly
+      payload: "KY Jelly"
+    
+
+  - condition:
+      - type: slot
+        name: product_category
+        value: Contraceptive Pills
+    text: "We have the following {product_category}:"
+    buttons:
+    - title: PostPill
+      payload: "PostPill"
+    - title: Levofem
+      payload: "Levofem"
+    - title: Dianofem
+      payload: "Dianofem"
+    - title: Desofem
+      payload: "Desofem"
+    - title: Misofem
+      payload: "Misofem"
+    - title: Mifepak
+      payload: "Mifepak"
+  
+  - condition:
+      - type: slot
+        name: product_category
+        value: Lydia IUD
+    text: "We have the following {product_category}:"
+    buttons:
+    - title: Lydia IUD
+      payload: "Lydia IUD"
+    - title: Eliora
+      payload: "Eliora"
+  
+  - condition:
+      - type: slot
+        name: product_category
+        value: Injectibles
+    text: "We have the following {product_category}:"
+    buttons:
+    - title: Progesta
+      payload: "Progesta"
+  
+  - condition:
+      - type: slot
+        name: product_category
+        value: Implant
+    text: "We have the following {product_category}:"
+    buttons:
+    - title: Levoplant
+      payload: "Levoplant"
+  
+  - condition:
+      - type: slot
+        name: product_category
+        value: Penegra
+    text: "We have the following {product_category}:"
+    buttons:
+    - title: Penegra
+      payload: "Penegra"
+  
+  - condition:
+      - type: slot
+        name: product_category
+        value: HIV Self-Test Kit
+    text: "We have the following {product_category}:"
+    buttons:
+    - title: Self-Test Kit
+      payload: "Self-Test Kit"
+
+  utter_product_details:
+  - condition:
+      - type: slot
+        name: product_name
+        value: "Durex"
+    text: "You may feel free to relax and enjoy fantastic sex with the certainty that you are protected thanks to the transparent, somewhat thicker, and extremely lubricated Durex extremely Safe."
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/u89m2yhtn2h4mwg1zrmc4vsu?v=1695046934183"
+  - condition:
+      - type: slot
+        name: product_name
+        value: "Trojan"
+    text: "Trojan is a brand name of condoms and sexual lubricants manufactured by the Church & Dwight Company. You can visit yor nearest health shop to buy."
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/jt1ntxpoa9s0k4aq3j8m1akj?v=1695046181629"
+  - condition:
+      - type: slot
+        name: product_name
+        value: "Kiss Condom"
+    text: "Kiss condoms is gently lubricated to provide you with a silky, natural feeling for increased pleasure and sensitivity. We can refer you to the nearest Clinic/Agent."
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/gdg5uboe8z0qn52ca6g5pxwx?v=1695046834991"
+  - condition:
+      - type: slot
+        name: product_name
+        value: "Gold Circle"
+    text: "Gold Circle (GC) Condom is SFH Nigeria's pinnacle product. You can visit you nearest health shop to purchase."
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/r0x11v0us12fl25uzsps4u09?v=1695046576299"
+  - condition:
+      - type: slot
+        name: product_name
+        value: "FIESTA"
+    text: "Fiesta Is A Premium Condom Brand That Comes In 14 Exciting Variants Of Styles, Colours, Textures, Flavors, Shapes And Sizes That Increase The Sensation For Both Partners. ... Fiesta Strawberry Is Strawberry Flavored To Sweeten And Stimulate The Senses. It Also Comes With 500 Pleasure Dots.We can refer you to the nearest Clinic/Agent."
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/khhlwsa9tt3xgoq2vh3yyhuv?v=1695046660975"
+  - condition:
+      - type: slot
+        name: product_name
+        value: "Lydia IUD"
+    text: "Lydia IUD devices are non-hormonal, long-lasting contraception (5-10 yrs.) DKT has 5 variants which can be T (the most common) or Y shaped - made of plastic coat with copper. This device is inserted into the uterus and it is the most effective contraceptive according to WHO with about 99.9% efficacy. It can also serve as an emergency contraceptive if used within 5 days of unprotected sexual intercourse.\nIt's mechanism of action is to inhibit sperm penetration due to toxicity of copper to sperm"
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/hfzgb1qs4f2f7prnw7jxvzsq?v=1695034123315"
+  - condition:
+      - type: slot
+        name: product_name
+        value: "Eliora"
+    text: "Eloira, which is an IUS different from IUD due to absence of copper. A hormone (Levonorgestrel) replaces the copper. It is used to treat gynecological conditions and pregnancy preventions."
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/hfzgb1qs4f2f7prnw7jxvzsq?v=1695034123315"
+  - condition:
+      - type: slot
+        name: product_name
+        value: "Progesta"
+    text: "Progesta is an injectable contraceptive, highly safe and effective contraceptive, injected intramuscular and sometimes into the anus for 3months continuous.\nMechanism of Action\n• thicken cervical mucus.\n• inhibits ovulation.\n• thins uterus walls to prevent ovulation.\nAdvantages include Safe, highly effective, discontinued at will, long acting, provided outside clinic, reversible, easy to use, use is private, non-contraceptive benefit.\nUsers include heavy smokers, thyroid disorders, diabetes, 18yrs old or younger, breastfeeding mothers, pelvic inflammatory diseases.\nHow to use\n• Injected in the upper arm or buttocks, start at any time during the menstrual cycle.\n• 5 days after menstrual period, abstain from sex for the next 7days.\n• It can be administered after abortion.\n• Start 6 weeks after delivery for a breastfeeding woman."
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/o3ec4rcptk9m449c8b6nolij?v=1695034923680"
+  - condition:
+      - type: slot
+        name: product_name
+        value: "Levoplant"
+    text: "Levoplant which is a subdermal contraceptive implant, Levoplant has two small flexible rods about matchstick size. It is WHO prequalified and highly effective for 3years, it is suitable for most women except pregnant women.\nAdvantages:\n• Immediate return to fertility.\n• Fewer side effects.\n• Thinner trocar for the insertion process.\n• High quality and most affordable 3 years implant in Nigeria.\nCommon side effects:\n• menstrual changes.\n• Headaches.\n• Dizziness.\n• weight changes (loss/Gain)- which is a buildup of water not fat.\n• breast tenderness"
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/eizomdztlafy60mp42xn4rwn?v=1695034049069"
+  - condition:
+      - type: slot
+        name: product_name
+        value: "Penegra"
+    text: "Penegra is a DKT product that contains Sidenafil Citrate. It is used to treat erectile dysfunction.Erectile Dysfunction refers to the consistent/recurrent inability of a man to obtain an erection sufficient for satisfactory sexual activities.\nPenegra helps to induce hard erection which can last for an extended duration thereby enhancing confidence, well-being and satisfaction in men. Penegra only induce hard erection when the penis is stimulated."
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/siuf2nmqf64trpx21r9lcm5w?v=1695033735916"
+  - condition:
+      - type: slot
+        name: product_name
+        value: "Self-Test Kit"
+    text: "The HIV Self-Test kit Or a Quick (by DKT) detects antibodies to both HIV-1 and HIV-2 with an oral swab, providing a confidential in-home testing option with results in as little as 20 minutes. It is the first in-home ORAL HIV SELF-TEST to be approved by WHO, NAFDAC, FMOH and US-FDA. There is a short video below for you to watch how to use. Click to watch"
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/welytc2vq8j6ty950xofaquj?v=1695034713635"
+    attachment: { "type":"video", "payload":{ "src": "https://www.youtube.com/embed/D_IHm3p8RW0?si=Qf1anWxpbkqP3Nnq" } }
+  - condition:
+      - type: slot
+        name: product_name
+        value: "FIESTA Intim Natural Gel"
+    text: "Fiesta Gels  are classy and smooth, withl wet sensation for heightened sexual pleasure. How to Use Pour - a small amount of fiesta intim natural gel on your palm and apply directly on erect penis. For extra plessure, you can also apply on the woman's intimate area. We can refer you to the nearest Clinic/Agent."
+    image: "https://s3.typebot.io/public/workspaces/clk9ixvcx0005jt0fbmqw1kmk/typebots/cllwc05uj0009l80f5xsndtlz/blocks/ve5s9r2zy5xql0w4xgwhz0h5?v=1695035450247"  
+  - condition:
+      - type: slot
+        name: product_name
+        value: "KY Jelly"
+    text: "KY Jelly is water-based, fragrance-free, non-greasy formula that quickly prepares you for sexual intimacy & eases the discomfort of personal dryness.You can purchase it at your nearest health shop."
+    image: "https://s3.typebot.io/public/workspaces/clmis6ucm000il50gyvzllels/typebots/clmis9a0q000ol50gdavazp8y/blocks/rrkyravygai48dhokh93mewh?v=1695485135707"
+  utter_other_issues:
+  - text: "What other issue would you like to know about?"
+    buttons:
+    - title: HIV
+      payload: /ask_gpt
+    - title: Abortion
+      payload: /ask_gpt
+    - title: STI
+      payload: /ask_gpt
+    - title: Menstruation
+      payload: /ask_gpt
+    - title: Sex
+      payload: /ask_gpt
+    - title: Pregnancy
+      payload: /ask_gpt
+    - title: Rape
+      payload: /ask_gpt
+    
+  utter_ask_gpt_question:
+  - text: "Please enter your question in full."
+
+  utter_clinic_details:
+  - text: "To talk to an agent Call 7790. I will like to refer you to the nearest clinic. Please choose your nearest location"
+
+  utter_goodbye:
+  - text: "Bye"
+  
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
