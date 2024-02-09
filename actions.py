@@ -41,7 +41,7 @@ class ChatGPT(object):
         else:
             return "Sorry, I couldn't generate a response at the moment. Please try again later."
 
-chatGPT = ChatGPT("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")
+chatGPT = ChatGPT("")
 
 class ActionResetProductSlot(Action):
 
